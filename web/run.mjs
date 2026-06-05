@@ -12,6 +12,7 @@ import { mintContentId, hashDataset } from '../src/identity.mjs';
 import { applySelection, finalizeCuration, flagAmbiguous } from '../src/curation.mjs';
 import { buildExportManifest } from '../src/manifest.mjs';
 import { validateDataset } from '../src/validate.mjs';
+import { runOffline } from '../src/pipeline.mjs';
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -97,6 +98,15 @@ test('§7.1.1 a duplicate @id is rejected', () =>
 test('§7.1.6 a leaked secret is caught (no credential may export)', () => {
   const r = validateDataset({ lexicalEntries: [{ lemma: 'x', token: 'SECRET123' }] }, ['SECRET123']);
   eq([r.validationState, r.reasons.some(x => x.rule === 6)], ['ValidationFailed', true]);
+});
+
+// §8.2 — the whole offline pipeline, in the browser: CSV → validated JSON-LD
+test('§8.2 runOffline: CSV → normalized, deferred, validated, content-addressed graph', () => {
+  const { dataset, manifest } = runOffline('term\nSerendipity\nCAFÉ', { generatedAt: '2020-01-01T00:00:00Z' });
+  eq([dataset.lexicalEntries.length, dataset.lexicalEntries[1].normalizedForm,
+      dataset.lexicalEntries[0].fetchStatus, dataset.lexicalEntries[0]['@id'].startsWith('https://w3id.org/lce/id/'),
+      manifest.fetchPhase, manifest.validationState],
+     [2, 'café', 'deferred', true, 'FullyFetched', 'ValidatedExport']);
 });
 
 // --- render -------------------------------------------------------------
