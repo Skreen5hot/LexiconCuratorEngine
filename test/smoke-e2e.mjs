@@ -92,7 +92,7 @@ assert('E2E-14 notice @type',
 }
 
 // E2E-16: canonicalization and hashAlgorithm fields present
-assert('E2E-16 canonicalization', manifest.canonicalization, 'RDFC-1.0');
+assert('E2E-16 canonicalization', manifest.canonicalization, 'sorted-keys-json');
 assert('E2E-16 hashAlgorithm', manifest.hashAlgorithm, 'SHA-256');
 
 if (failures > 0) {

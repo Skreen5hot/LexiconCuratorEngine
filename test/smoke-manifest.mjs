@@ -36,7 +36,7 @@ function makeEntry(lemma, fetchStatus = 'notStarted', curationStatus = 'uncurate
   const ds = makeDataset([]);
   const m = buildExportManifest(ds, { generatedAt: '2026-06-05T00:00:00Z' });
   assert('AC-M1 @type', m['@type'], 'lce:ExportManifest');
-  assert('AC-M1 canonicalization', m.canonicalization, 'RDFC-1.0');
+  assert('AC-M1 canonicalization', m.canonicalization, 'sorted-keys-json');
   assert('AC-M1 hashAlgorithm', m.hashAlgorithm, 'SHA-256');
   assert('AC-M1 @id prefix', m['@id'].startsWith('https://w3id.org/lce/id/manifest/'), true);
   assert('AC-M1 @id hash segment length', m['@id'].split('/').pop().length, 32);

@@ -86,10 +86,10 @@ test('§3.2 flagAmbiguous → ambiguous (terminal)', () =>
   eq(_cur(flagAmbiguous(_st(), 'x')), 'ambiguous'));
 
 // §5.4 — ExportManifest (content-addressed JSON-LD over the dataset)
-test('§5.4 manifest carries type, RDFC-1.0, datasetHash, derived phases', () => {
+test('§5.4 manifest carries type, sorted-keys-json, datasetHash, derived phases', () => {
   const m = buildExportManifest({ lexicalEntries: [] }, { generatedAt: '2020-01-01T00:00:00Z' });
   eq([m['@type'], m.canonicalization, m.entryCount, m.fetchPhase, m.datasetHash.startsWith('sha256:')],
-     ['lce:ExportManifest', 'RDFC-1.0', 0, 'Initialized', true]);
+     ['lce:ExportManifest', 'sorted-keys-json', 0, 'Initialized', true]);
 });
 
 // §7 — validation engine, incl. the §7.1.6 credential-leak scan

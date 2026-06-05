@@ -35,7 +35,10 @@ export function buildExportManifest(dataset, opts = {}) {
   const manifest = {
     '@id': MANIFEST_BASE + manifestIdHash,
     '@type': 'lce:ExportManifest',
-    canonicalization: 'RDFC-1.0',
+    // §5.2 HONESTY: this datasetHash is a syntactic, key-order-stable JSON hash (recursively
+    // sorted keys), NOT the semantic RDFC-1.0 / URDNA2015 graph canonicalization §5.2 names as
+    // the ideal. Labeled accurately until URDNA2015 lands. (serializationHash §5.3 is byte-level.)
+    canonicalization: 'sorted-keys-json',
     hashAlgorithm: 'SHA-256',
     datasetHash,
     manifestGeneratedAt: generatedAt,
