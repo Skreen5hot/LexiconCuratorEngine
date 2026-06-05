@@ -7,6 +7,7 @@
 import { normalizeLexicalEntry } from '../src/normalize.mjs';
 import { FETCH_STATUS, CURATION_STATUS, isFetchTerminal, isCurationTerminal } from '../src/status.mjs';
 import { deriveFetchPhase, deriveCurationPhase, DEFAULT_VALIDATION_STATE } from '../src/phases.mjs';
+import { parseInput } from '../src/parse.mjs';
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -41,6 +42,17 @@ test('§3.3 all-deferred → FullyFetched (open-world: absence ≠ failure)', ()
 test('§3.3 mixed terminal + notStarted → PartiallyFetched', () =>
   eq(deriveFetchPhase([{ fetchStatus: FETCH_STATUS.FETCHED }, { fetchStatus: FETCH_STATUS.NOT_STARTED }]), 'PartiallyFetched'));
 test('§3.3 default validationState is Unvalidated', () => eq(DEFAULT_VALIDATION_STATE, 'Unvalidated'));
+
+// §4.4 — RFC-4180 CSV parser → initialized LexicalEntry records
+test('§4.4 parses header + quoted field with embedded comma', () => {
+  const { entries } = parseInput('term,note\n"a,b",x\nCafé,y', { foldDiacritics: true });
+  eq([entries.length, entries[0].lemma, entries[1].normalizedForm], [2, 'a,b', 'cafe']);
+});
+test('§4.4 initializes entries to notStarted / uncurated', () => {
+  const { entries } = parseInput('term\nhello');
+  eq([entries[0].fetchStatus, entries[0].curationStatus], [FETCH_STATUS.NOT_STARTED, CURATION_STATUS.UNCURATED]);
+});
+test('§4.4 skips blank lines', () => eq(parseInput('term\nx\n\n\ny').entries.length, 2));
 
 // --- render -------------------------------------------------------------
 export function runAll(root) {
