@@ -8,6 +8,8 @@ import { normalizeLexicalEntry } from '../src/normalize.mjs';
 import { FETCH_STATUS, CURATION_STATUS, isFetchTerminal, isCurationTerminal } from '../src/status.mjs';
 import { deriveFetchPhase, deriveCurationPhase, DEFAULT_VALIDATION_STATE } from '../src/phases.mjs';
 import { parseInput } from '../src/parse.mjs';
+import { mintContentId, hashDataset } from '../src/identity.mjs';
+import { applySelection, finalizeCuration, flagAmbiguous } from '../src/curation.mjs';
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -53,6 +55,30 @@ test('§4.4 initializes entries to notStarted / uncurated', () => {
   eq([entries[0].fetchStatus, entries[0].curationStatus], [FETCH_STATUS.NOT_STARTED, CURATION_STATUS.UNCURATED]);
 });
 test('§4.4 skips blank lines', () => eq(parseInput('term\nx\n\n\ny').entries.length, 2));
+
+// §5.1 / §5.2 — content-addressed identity (dependency-free SHA-256, runs in-browser)
+test('§5.1 content id is deterministic & stable under key reordering', () =>
+  eq(mintContentId({ a: 1, b: [2, 3] }), mintContentId({ b: [2, 3], a: 1 })));
+test('§5.1 distinct content → distinct id', () => {
+  if (mintContentId({ a: 1 }) === mintContentId({ a: 2 })) throw new Error('hash collision');
+});
+test('§5.2 dataset hash is sha256:-prefixed and key-order stable', () => {
+  const h = hashDataset({ x: [1, 2], y: 3 });
+  eq([h, h.startsWith('sha256:')], [hashDataset({ y: 3, x: [1, 2] }), true]);
+});
+
+// §3.2 — curation state transitions (the 'selected only via finalize' invariant)
+const _st = () => ({ lexicalEntries: [{ lemma: 'x', normalizedForm: 'x', curationStatus: 'uncurated',
+  candidateDefinitions: [], selectedDefinitions: [], resolutionEvents: [] }] });
+const _cur = s => s.lexicalEntries[0].curationStatus;
+test('§3.2 applySelection → partiallySelected, never directly selected', () =>
+  eq(_cur(applySelection(_st(), 'x', ['c1'])), 'partiallySelected'));
+test('§3.2 finalizeCuration with selections → selected', () =>
+  eq(_cur(finalizeCuration(applySelection(_st(), 'x', ['c1']), 'x')), 'selected'));
+test('§3.2 finalizeCuration with none → rejected', () =>
+  eq(_cur(finalizeCuration(_st(), 'x')), 'rejected'));
+test('§3.2 flagAmbiguous → ambiguous (terminal)', () =>
+  eq(_cur(flagAmbiguous(_st(), 'x')), 'ambiguous'));
 
 // --- render -------------------------------------------------------------
 export function runAll(root) {
