@@ -7,60 +7,79 @@
   <style>
     :root { color-scheme: light dark; }
     body { font: 15px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-           max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+           max-width: 940px; margin: 2rem auto; padding: 0 1rem; }
     h1 { font-size: 1.3rem; margin-bottom: 0.2rem; }
     p.lead { opacity: 0.8; margin-top: 0; }
-    .note { font-size: 0.85rem; opacity: 0.7; border-left: 3px solid currentColor; padding: 0.3rem 0.7rem; margin: 0.8rem 0; }
-    textarea { width: 100%; min-height: 9rem; font: inherit; padding: 0.5rem; box-sizing: border-box; }
-    .controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin: 0.6rem 0 1.2rem; }
-    button#run { font: inherit; font-weight: 700; padding: 0.4rem 1.1rem; cursor: pointer; border-radius: 6px; }
+    .note { font-size: 0.84rem; opacity: 0.72; border-left: 3px solid currentColor; padding: 0.3rem 0.7rem; margin: 0.8rem 0; }
+    textarea { width: 100%; min-height: 7.5rem; font: inherit; padding: 0.5rem; box-sizing: border-box; }
+    .controls { display: flex; flex-wrap: wrap; gap: 0.7rem 1rem; align-items: center; margin: 0.6rem 0 1rem; }
+    button { font: inherit; padding: 0.35rem 0.9rem; cursor: pointer; border-radius: 6px; }
+    button:disabled { opacity: 0.45; cursor: default; }
+    #load, #lookup, #export { font-weight: 700; }
     label { display: inline-flex; gap: 0.3rem; align-items: center; }
-    #summary { font-size: 1.02rem; padding: 0.5rem 0.7rem; border-radius: 6px;
-               background: color-mix(in srgb, currentColor 6%, transparent); margin-bottom: 0.8rem; }
+    #summary { font-size: 1rem; padding: 0.45rem 0.7rem; border-radius: 6px;
+               background: color-mix(in srgb, currentColor 6%, transparent); margin-bottom: 0.9rem; }
     .ok { color: green; font-weight: 700; } .bad { color: crimson; font-weight: 700; }
-    table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
-    th, td { text-align: left; padding: 0.25rem 0.6rem; border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent); }
-    th { opacity: 0.7; font-weight: 600; }
-    details { margin-top: 1rem; }
-    summary { cursor: pointer; }
-    pre { overflow: auto; max-height: 28rem; background: color-mix(in srgb, currentColor 5%, transparent); padding: 0.7rem; border-radius: 6px; }
-    button#download { font: inherit; margin-left: 0.6rem; cursor: pointer; }
+    .entry { padding: 0.6rem 0; border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+    .ehead { display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; }
+    .ehead b { font-size: 1.05rem; }
+    .orig { opacity: 0.55; font-size: 0.82rem; }
+    .badge { font-size: 0.72rem; padding: 0.05rem 0.4rem; border-radius: 4px; text-transform: lowercase;
+             background: color-mix(in srgb, currentColor 12%, transparent); }
+    .c-selected { color: green; } .c-rejected { color: crimson; } .c-ambiguous { color: darkorange; }
+    .f-unavailable, .f-blocked, .f-failed { color: crimson; } .f-fetched { color: green; }
+    .cands { margin: 0.4rem 0 0.2rem; display: flex; flex-direction: column; gap: 0.25rem; }
+    .cand { text-align: left; border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+            background: transparent; padding: 0.3rem 0.55rem; line-height: 1.35; }
+    .cand:hover { background: color-mix(in srgb, currentColor 7%, transparent); }
+    .cand.sel { border-color: green; background: color-mix(in srgb, green 14%, transparent); font-weight: 600; }
+    .pos { opacity: 0.6; font-style: italic; margin-right: 0.3rem; }
+    .acts { display: flex; gap: 0.6rem; margin-top: 0.2rem; }
+    .acts button { font-size: 0.82rem; padding: 0.15rem 0.6rem; }
+    .cand-none { opacity: 0.6; font-size: 0.88rem; padding: 0.2rem 0; }
+    details { margin-top: 1.2rem; } summary { cursor: pointer; }
+    pre { overflow: auto; max-height: 26rem; background: color-mix(in srgb, currentColor 5%, transparent); padding: 0.7rem; border-radius: 6px; }
     footer { margin-top: 2rem; opacity: 0.6; font-size: 0.85rem; }
     a { color: inherit; }
   </style>
 </head>
 <body>
   <h1>Lexicon Curator Engine</h1>
-  <p class="lead">Parse a lexicon, normalize it deterministically, validate it, and emit an immutable, content-addressed JSON-LD graph — all in this tab, no server.</p>
+  <p class="lead">Load a lexicon, look up definitions, curate them, and export an immutable, content-addressed JSON-LD graph — all in this browser tab, no server.</p>
 
-  <p class="note">Offline mode: online dictionary lookups (every entry is <code>deferred</code>) and the interactive definition-selection interface are deferred adapter/curation phases (§4.2 / §8.3). What runs here is the full deterministic core: parse (§4.4) → normalize (§4.1) → derive phases (§3.3) → validate (§7) → mint content-ids (§5) → ExportManifest (§5.4).</p>
+  <p class="note">Definitions are fetched live from the free
+    <a href="https://dictionaryapi.dev">dictionaryapi.dev</a> (Wiktionary, CC BY-SA) — the §4.2 adapter.
+    Pick a sense per term to <code>select</code> it, or mark it <code>reject</code>/<code>ambiguous</code> (§3.2),
+    then export. Everything else runs in-tab: normalize (§4.1) · status &amp; phases (§3) · validate incl.
+    credential scan (§7) · content-addressing (§5).</p>
 
   <label for="csv"><b>Lexicon</b> — CSV with a <code>term</code> column (extra columns ignored):</label>
-  <textarea id="csv">term,note
-Serendipity,a happy accident
-Café,has a diacritic
-"Quixotic, idealistic",quoted, with a comma
-Ephemeral,short-lived
-Συμπάθεια,non-Latin script (diacritic fold is Latin-only)</textarea>
+  <textarea id="csv">term
+serendipity
+ephemeral
+quixotic
+ineffable
+zugzwang</textarea>
 
   <div class="controls">
-    <button type="button" id="run">Curate &rarr;</button>
-    <label><input type="checkbox" id="fold" /> fold diacritics (§4.1)</label>
-    <label><input type="checkbox" id="header" checked /> first row is a header</label>
-    <label>load a file: <input type="file" id="file" accept=".csv,.txt" /></label>
+    <button type="button" id="load">Load</button>
+    <button type="button" id="lookup" disabled>Look up definitions (online)</button>
+    <button type="button" id="export" disabled>Export JSON-LD</button>
+    <label><input type="checkbox" id="fold" /> fold diacritics</label>
+    <label><input type="checkbox" id="header" checked /> header row</label>
+    <label>file: <input type="file" id="file" accept=".csv,.txt" /></label>
   </div>
 
-  <section id="output" hidden>
-    <div id="summary"></div>
-    <table id="entries"></table>
-    <details>
-      <summary>JSON-LD export <button type="button" id="download">Download .jsonld</button></summary>
-      <pre id="json"></pre>
-    </details>
-  </section>
+  <div id="summary"></div>
+  <div id="entries"></div>
+
+  <details id="jsonwrap" hidden>
+    <summary>JSON-LD export (also downloaded)</summary>
+    <pre id="json"></pre>
+  </details>
 
   <footer>
-    Built end-to-end by the IntegratedAgent agile cycle from
+    Core built end-to-end by the IntegratedAgent agile cycle from
     <a href="LCE-Spec-R3.1-Hardened.md">LCE-Spec-R3.1-Hardened.md</a>, gated at every step.
     &middot; <a href="selftest.html">core self-test &#10003;</a>
   </footer>
