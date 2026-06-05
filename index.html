@@ -3,35 +3,68 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LCE — live core self-test</title>
+  <title>Lexicon Curator Engine</title>
   <style>
     :root { color-scheme: light dark; }
     body { font: 15px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-           max-width: 820px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { font-size: 1.2rem; }
-    p.lead { opacity: 0.75; }
-    .summary { font-size: 1.05rem; font-weight: 700; padding: 0.5rem 0.75rem; border-radius: 6px; }
-    .row { display: flex; gap: 0.6rem; align-items: baseline; padding: 0.2rem 0.4rem; border-radius: 4px; }
-    .row small { opacity: 0.7; }
-    .tag { font-weight: 700; font-size: 0.8rem; width: 3.2rem; }
-    .pass { background: color-mix(in srgb, green 14%, transparent); }
-    .fail { background: color-mix(in srgb, red 18%, transparent); }
-    .pass .tag { color: green; } .fail .tag { color: crimson; }
-    footer { margin-top: 1.5rem; opacity: 0.6; font-size: 0.85rem; }
+           max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.3rem; margin-bottom: 0.2rem; }
+    p.lead { opacity: 0.8; margin-top: 0; }
+    .note { font-size: 0.85rem; opacity: 0.7; border-left: 3px solid currentColor; padding: 0.3rem 0.7rem; margin: 0.8rem 0; }
+    textarea { width: 100%; min-height: 9rem; font: inherit; padding: 0.5rem; box-sizing: border-box; }
+    .controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin: 0.6rem 0 1.2rem; }
+    button#run { font: inherit; font-weight: 700; padding: 0.4rem 1.1rem; cursor: pointer; border-radius: 6px; }
+    label { display: inline-flex; gap: 0.3rem; align-items: center; }
+    #summary { font-size: 1.02rem; padding: 0.5rem 0.7rem; border-radius: 6px;
+               background: color-mix(in srgb, currentColor 6%, transparent); margin-bottom: 0.8rem; }
+    .ok { color: green; font-weight: 700; } .bad { color: crimson; font-weight: 700; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.25rem 0.6rem; border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent); }
+    th { opacity: 0.7; font-weight: 600; }
+    details { margin-top: 1rem; }
+    summary { cursor: pointer; }
+    pre { overflow: auto; max-height: 28rem; background: color-mix(in srgb, currentColor 5%, transparent); padding: 0.7rem; border-radius: 6px; }
+    button#download { font: inherit; margin-left: 0.6rem; cursor: pointer; }
+    footer { margin-top: 2rem; opacity: 0.6; font-size: 0.85rem; }
     a { color: inherit; }
   </style>
 </head>
 <body>
-  <h1>Lexicon Curator Engine — live core self-test</h1>
-  <p class="lead">The deterministic core, running unmodified in this browser tab (§1.1).
-     Built by the IntegratedAgent agile cycle from <code>LCE-Spec-R3.1-Hardened.md</code>,
-     gated at every step. Assertions run on page load:</p>
-  <div id="results">running…</div>
-  <footer>Each green box is the same contract the Node smoke suite enforces in CI.
-    Modules grow per shipped phase. <a href="LCE-Spec-R3.1-Hardened.md">spec</a></footer>
-  <script type="module">
-    import { runAll } from './web/run.mjs';
-    runAll(document.getElementById('results'));
-  </script>
+  <h1>Lexicon Curator Engine</h1>
+  <p class="lead">Parse a lexicon, normalize it deterministically, validate it, and emit an immutable, content-addressed JSON-LD graph — all in this tab, no server.</p>
+
+  <p class="note">Offline mode: online dictionary lookups (every entry is <code>deferred</code>) and the interactive definition-selection interface are deferred adapter/curation phases (§4.2 / §8.3). What runs here is the full deterministic core: parse (§4.4) → normalize (§4.1) → derive phases (§3.3) → validate (§7) → mint content-ids (§5) → ExportManifest (§5.4).</p>
+
+  <label for="csv"><b>Lexicon</b> — CSV with a <code>term</code> column (extra columns ignored):</label>
+  <textarea id="csv">term,note
+Serendipity,a happy accident
+Café,has a diacritic
+"Quixotic, idealistic",quoted, with a comma
+Ephemeral,short-lived
+Συμπάθεια,non-Latin script (diacritic fold is Latin-only)</textarea>
+
+  <div class="controls">
+    <button type="button" id="run">Curate &rarr;</button>
+    <label><input type="checkbox" id="fold" /> fold diacritics (§4.1)</label>
+    <label><input type="checkbox" id="header" checked /> first row is a header</label>
+    <label>load a file: <input type="file" id="file" accept=".csv,.txt" /></label>
+  </div>
+
+  <section id="output" hidden>
+    <div id="summary"></div>
+    <table id="entries"></table>
+    <details>
+      <summary>JSON-LD export <button type="button" id="download">Download .jsonld</button></summary>
+      <pre id="json"></pre>
+    </details>
+  </section>
+
+  <footer>
+    Built end-to-end by the IntegratedAgent agile cycle from
+    <a href="LCE-Spec-R3.1-Hardened.md">LCE-Spec-R3.1-Hardened.md</a>, gated at every step.
+    &middot; <a href="selftest.html">core self-test &#10003;</a>
+  </footer>
+
+  <script type="module" src="./web/app.mjs"></script>
 </body>
 </html>
