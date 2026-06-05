@@ -1,0 +1,69 @@
+{
+  "@context": "https://w3id.org/lce/context.jsonld",
+  "@id": "https://w3id.org/lce/id/dataset/9d2f1c47e0a3b8556a1f0c4d2b7e8a91",
+  "@type": "lce:LexiconDataset",
+  "fetchPhase": "FullyFetched",
+  "curationPhase": "PartiallyCurated",
+  "validationState": "ValidatedExport",
+  "lexicalEntries": [
+    {
+      "@id": "https://w3id.org/lce/id/entry/3f786850e387550fdab836ed7e6dc881",
+      "@type": "lce:LexicalEntry",
+      "lemma": "example",
+      "normalizedForm": "example",
+      "fetchStatus": "fetched",
+      "curationStatus": "selected",
+      "candidateDefinitions": [
+        {
+          "@id": "https://w3id.org/lce/id/def/574f5dcf92b9aef50299ae9f96af73b5",
+          "@type": "lce:DefinitionCandidate",
+          "definitionText": "A representative form of a group.",
+          "rank": 1,
+          "source": {
+            "@type": "schema:CreativeWork",
+            "name": "Wiktionary",
+            "url": "https://en.wiktionary.org/wiki/example",
+            "license": "https://creativecommons.org/licenses/by-sa/4.0/"
+          },
+          "retrievedAt": "2026-05-29T05:44:00Z",
+          "adapter": "WiktionaryRestAdapter",
+          "adapterVersion": "1.4.0",
+          "credentialPolicy": "none",
+          "credentialUsed": false
+        }
+      ],
+      "selectedDefinitions": [
+        {
+          "@id": "https://w3id.org/lce/id/sel/574f5dcf92b9aef50299ae9f96af73b5",
+          "@type": "lce:DefinitionSelection",
+          "selectedCandidate": "https://w3id.org/lce/id/def/574f5dcf92b9aef50299ae9f96af73b5",
+          "curatedBy": { "@type": "schema:Agent", "name": "LCE Automated Agent Shell" },
+          "selectionMethod": "agent",
+          "selectedAt": "2026-05-29T05:50:00Z"
+        }
+      ],
+      "resolutionEvents": []
+    },
+    {
+      "@id": "https://w3id.org/lce/id/entry/8a1d2f00c3b9e4715a6e0d4c2f9b7e10",
+      "@type": "lce:LexicalEntry",
+      "lemma": "offline-only-term",
+      "normalizedForm": "offline-only-term",
+      "fetchStatus": "deferred",
+      "curationStatus": "uncurated",
+      "candidateDefinitions": [],
+      "selectedDefinitions": [],
+      "resolutionEvents": [
+        {
+          "@type": "lce:ResolutionNotice",
+          "resolutionStatus": "Deferred",
+          "reason": "OfflinePolicy",
+          "message": "Lookup not attempted; shell declared online:false.",
+          "adapter": "WiktionaryRestAdapter",
+          "adapterVersion": "1.4.0",
+          "occurredAt": "2026-05-29T05:44:00Z"
+        }
+      ]
+    }
+  ]
+}

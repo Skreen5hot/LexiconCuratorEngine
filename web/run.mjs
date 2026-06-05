@@ -13,6 +13,8 @@ import { applySelection, finalizeCuration, flagAmbiguous } from '../src/curation
 import { buildExportManifest } from '../src/manifest.mjs';
 import { validateDataset } from '../src/validate.mjs';
 import { runOffline } from '../src/pipeline.mjs';
+import { pinnedSerialize, serializationHash } from '../src/serialize.mjs';
+import { stripCredentials, scrubSecrets } from '../src/sanitize.mjs';
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -108,6 +110,23 @@ test('§8.2 runOffline: CSV → normalized, deferred, validated, content-address
       manifest.fetchPhase, manifest.validationState],
      [2, 'café', 'deferred', true, 'FullyFetched', 'ValidatedExport']);
 });
+
+// §8.1 / §5.3 — pinned export serialization + serialization hash
+test('§8.1 pinned serialization is canonical (order-independent, @id leads)', () => {
+  const a = pinnedSerialize({ '@type': 'X', '@id': 'i', z: 1, a: 2 });
+  eq([a, a.split('\n')[1].trim().startsWith('"@id"')],
+     [pinnedSerialize({ a: 2, z: 1, '@id': 'i', '@type': 'X' }), true]);
+});
+test('§5.3 serializationHash is sha256:-prefixed and stable', () => {
+  const h = serializationHash({ a: 1, b: 2 });
+  eq([h.startsWith('sha256:'), h], [true, serializationHash({ b: 2, a: 1 })]);
+});
+
+// §4.3 — credential / untrusted-string leak-path closure
+test('§4.3 strips credential URL params', () =>
+  eq(stripCredentials('https://api.example/d?api_key=SEKRET&q=hi').includes('api_key=REDACTED'), true));
+test('§4.3 scrubs secret substrings', () =>
+  eq(scrubSecrets('key SEKRET here', ['SEKRET']), 'key [REDACTED] here'));
 
 // --- render -------------------------------------------------------------
 export function runAll(root) {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from 'node:fs';
 import { runOffline } from '../src/pipeline.mjs';
+import { pinnedSerialize, serializationHash } from '../src/serialize.mjs';
 
 const args = process.argv.slice(2);
 
@@ -24,6 +25,7 @@ const csvText = readFileSync(inputPath, 'utf8');
 const generatedAt = new Date().toISOString();
 
 const { dataset, manifest } = runOffline(csvText, { generatedAt });
+manifest.serializationHash = serializationHash(dataset);   // §5.3 byte-level integrity
 
 const exportDoc = {
   '@context': 'https://w3id.org/lce/context.jsonld',
@@ -31,7 +33,7 @@ const exportDoc = {
   dataset,
 };
 
-const json = JSON.stringify(exportDoc, null, 2) + '\n';
+const json = pinnedSerialize(exportDoc);   // §8.1 pinned, determinism-critical (terminal newline included)
 
 if (outputPath) {
   writeFileSync(outputPath, json, 'utf8');

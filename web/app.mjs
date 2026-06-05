@@ -11,6 +11,7 @@ import { mintContentId } from '../src/identity.mjs';
 import { buildExportManifest } from '../src/manifest.mjs';
 import { validateDataset } from '../src/validate.mjs';
 import { deriveFetchPhase, deriveCurationPhase } from '../src/phases.mjs';
+import { pinnedSerialize, serializationHash } from '../src/serialize.mjs';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -86,9 +87,12 @@ function exportGraph() {
   const entries = state.lexicalEntries.map(en => (en['@id'] ? en : { '@id': mintContentId(en), ...en }));
   const dataset = { '@type': 'lce:LexiconDataset', lexicalEntries: entries };
   dataset.validationState = validateDataset(dataset).validationState;
-  const manifest = buildExportManifest(dataset, { generatedAt: new Date().toISOString() });
+  const manifest = buildExportManifest(dataset, {
+    generatedAt: new Date().toISOString(),
+    serializationHash: serializationHash(dataset),   // §5.3 byte-level integrity over the pinned bytes
+  });
   const doc = { '@context': 'https://w3id.org/lce/context.jsonld', manifest, dataset };
-  const json = JSON.stringify(doc, null, 2);
+  const json = pinnedSerialize(doc);                  // §8.1 pinned export serialization (determinism-critical)
   $('json').textContent = json;
   $('jsonwrap').hidden = false;
   const a = document.createElement('a');
