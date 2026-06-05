@@ -10,6 +10,8 @@ import { deriveFetchPhase, deriveCurationPhase, DEFAULT_VALIDATION_STATE } from 
 import { parseInput } from '../src/parse.mjs';
 import { mintContentId, hashDataset } from '../src/identity.mjs';
 import { applySelection, finalizeCuration, flagAmbiguous } from '../src/curation.mjs';
+import { buildExportManifest } from '../src/manifest.mjs';
+import { validateDataset } from '../src/validate.mjs';
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -79,6 +81,23 @@ test('§3.2 finalizeCuration with none → rejected', () =>
   eq(_cur(finalizeCuration(_st(), 'x')), 'rejected'));
 test('§3.2 flagAmbiguous → ambiguous (terminal)', () =>
   eq(_cur(flagAmbiguous(_st(), 'x')), 'ambiguous'));
+
+// §5.4 — ExportManifest (content-addressed JSON-LD over the dataset)
+test('§5.4 manifest carries type, RDFC-1.0, datasetHash, derived phases', () => {
+  const m = buildExportManifest({ lexicalEntries: [] }, { generatedAt: '2020-01-01T00:00:00Z' });
+  eq([m['@type'], m.canonicalization, m.entryCount, m.fetchPhase, m.datasetHash.startsWith('sha256:')],
+     ['lce:ExportManifest', 'RDFC-1.0', 0, 'Initialized', true]);
+});
+
+// §7 — validation engine, incl. the §7.1.6 credential-leak scan
+test('§7 a clean dataset validates to ValidatedExport', () =>
+  eq(validateDataset({ lexicalEntries: [] }).validationState, 'ValidatedExport'));
+test('§7.1.1 a duplicate @id is rejected', () =>
+  eq(validateDataset({ lexicalEntries: [{ '@id': 'dup' }, { '@id': 'dup' }] }).validationState, 'ValidationFailed'));
+test('§7.1.6 a leaked secret is caught (no credential may export)', () => {
+  const r = validateDataset({ lexicalEntries: [{ lemma: 'x', token: 'SECRET123' }] }, ['SECRET123']);
+  eq([r.validationState, r.reasons.some(x => x.rule === 6)], ['ValidationFailed', true]);
+});
 
 // --- render -------------------------------------------------------------
 export function runAll(root) {
